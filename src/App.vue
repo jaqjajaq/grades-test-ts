@@ -1,27 +1,107 @@
+<script setup lang="ts">
+import { ref, computed } from "vue";
+
+import { Assessment, Subcategory, Category, SubjectData } from './types';
+
+import CreateCategoryForm from "./components/CreateCategoryForm.vue";
+import CreateSubcategoryForm from "./components/CreateSubcategoryForm.vue";
+import CreateAssessmentForm from "./components/CreateAssessmentForm.vue";
+import GradesDisplay from "./components/GradesDisplay.vue";
+import StorageOptions from "./components/StorageOptions.vue";
+
+import { calculateSubjectGrade } from "./utils/gradesCalculator";
+
+const calculatedSubjectGrade = computed(() => {
+  return calculateSubjectGrade(subjectData.value.categories);
+});
+
+// the root structure of the data of a single subject
+
+const subjectData = ref<SubjectData>({
+  name: 'General Chemistry II',
+  teacher: 'Ms. Nova',
+  categories: []
+});
+
+function handleAddCategory(newCategory: Category) {
+  subjectData.value.categories.push(newCategory);
+}
+
+function handleAddSubcategory(newSubcategory: Subcategory, parentCategoryId) {
+  const targetCategory = subjectData.value.categories.find(category => category.id === parentCategoryId);
+
+  if (targetCategory) {
+    targetCategory.subcategories.push(newSubcategory);
+  } else {
+    alert("Parent category not found!");
+  }
+}
+
+function handleAddAssessment(newAssessment: Assessment, parentCategoryId, parentSubcategoryId) {
+  const targetCategory = subjectData.value.categories.find(category => category.id === parentCategoryId);
+
+  if (targetCategory) {
+    const targetSubcategory = targetCategory.subcategories.find(subcategory => subcategory.id === parentSubcategoryId);
+
+    if (targetSubcategory) {
+      targetSubcategory.assessments.push(newAssessment);
+    } else {
+      console.error("Parent subcategory not found!");
+    }
+  } else {
+    console.error("Parent category not found!");
+  }
+}
+
+function saveData() {
+  localStorage.setItem("subjectData", JSON.stringify(subjectData.value))
+}
+
+function loadData() {
+  const loadedData = localStorage.getItem("subjectData")
+
+  if (loadedData) { subjectData.value = JSON.parse(loadedData) }
+}
+
+function resetData() {
+  subjectData.value.categories = []
+
+  localStorage.clear()
+}
+
+</script>
+
 <template>
   <UApp>
-    <div class="flex flex-col items-center justify-center gap-4 h-screen">
-      <h1 class="font-bold text-2xl text-(--ui-primary)">
-        Nuxt UI - Vue Starter
-      </h1>
+    <div class="subject-overview">
+      <h1>{{ subjectData.name }}</h1>
+      <p class="teacher-name">Teacher: {{ subjectData.teacher }}</p>
 
-      <div class="flex items-center gap-2">
-        <UButton
-          label="Documentation"
-          icon="i-lucide-square-play"
-          to="https://ui.nuxt.com/getting-started/installation/vue"
-          target="_blank"
-        />
-
-        <UButton
-          label="GitHub"
-          color="neutral"
-          variant="outline"
-          icon="i-simple-icons:github"
-          to="https://github.com/nuxt/ui"
-          target="_blank"
-        />
+      <div class="average-section">
+        <h3>Subject General Average: </h3>
+        <p class="average-value">{{ (calculatedSubjectGrade * 100).toFixed(4) }}</p>
       </div>
+
+      <section class="grading-input-forms">
+        <p>Input your data through these forms.</p>
+
+        <CreateCategoryForm @add-category="handleAddCategory" />
+        <CreateSubcategoryForm :categories="subjectData.categories" @add-subcategory="handleAddSubcategory" />
+        <CreateAssessmentForm :categories="subjectData.categories" @add-assessment="handleAddAssessment" />
+
+      </section>
+
+      <GradesDisplay :subject-data=subjectData />
+
+      <StorageOptions @save-data="saveData" @load-data="loadData" @reset-data="resetData" />
     </div>
   </UApp>
 </template>
+
+<style scoped>
+.subject-overview {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 72px 72px 30vh;
+}
+</style>

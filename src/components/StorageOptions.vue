@@ -1,24 +1,14 @@
 <script setup>
 const emit = defineEmits(["save-data", "load-data", "reset-data"]);
-
-function saveData () {
-    emit('save-data');
-}
-
-function loadData () {
-    emit('load-data');
-}
-
-function resetData () {
-    emit('reset-data');
-}
 </script>
 
 <template>
     <section class="storage-options">
-        <button type="button" @click="saveData()">Save Data</button>
-        <button type="button" @click="loadData()">Load Data</button>
-        <button type="button" @click="resetData()">Reset Data</button>
+        <UButtonGroup>
+            <UButton color="neutral" variant="subtle" label="Save Data" @click="emit('save-data');" />
+            <UButton color="neutral" variant="subtle" label="Load Data" @click="emit('load-data');" />
+            <UButton color="neutral" variant="subtle" label="Reset Data" @click="emit('reset-data');" />
+        </UButtonGroup>
     </section>
 </template>
 

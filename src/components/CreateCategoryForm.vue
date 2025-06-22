@@ -1,42 +1,45 @@
 <script setup>
-import { ref } from 'vue';
-
-const newCategory = ref({ name: '', weight: null });
+import { ref, reactive } from 'vue';
 
 const emit = defineEmits(["add-category"])
 
 function handleAddCategory() {
     emit('add-category', {
         id: window.crypto.randomUUID(),
-        name: newCategory.value.name,
-        weight: newCategory.value.weight,
+        name: state.name,
+        weight: state.weight,
         subcategories: []
     });
-
-    // Reset form fields
-    newCategory.value = { name: '', weight: null };
 }
+
+const state = reactive({
+    name: '',
+    weight: 0
+});
+
 </script>
 
 <template>
     <section class="create-category-form">
-        <h3>Create New Category</h3>
-        <form @submit.prevent="handleAddCategory">
-            <label for="category-name">Name:</label>
-            <input type="text" id="category-name" v-model="newCategory.name" required>
+        <h3 class="text-xl text-highlighted font-semibold mb-4">Category</h3>
+        
+        <UForm :state="state" class="gap-4 flex flex-col w-full" @submit="handleAddCategory">
+            <UFormField label="Name" required>
+                <UInput v-model="state.name" placeholder="Written Works..." class="block" />
+            </UFormField>
 
-            <label for="category-weight">Weight (%):</label>
-            <input type="number" id="category-weight" v-model.number="newCategory.weight" required>
+            <UFormField label="Weight (%)" name="weight" required>
+                <UInput v-model="state.weight" placeholder="30%" type="number" class="block" />
+            </UFormField>
 
-            <button type="submit">Add Category</button>
-        </form>
+            <div>
+                <UButton type="submit">
+                    Create
+                </UButton>
+            </div>
+        </UForm>
     </section>
 </template>
 
 <style scoped>
-form {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-}
 </style>

@@ -8,7 +8,7 @@ const props = defineProps({
 </script>
 
 <template>
-    <section class="grades-display">
+    <section class="grades-display text-default">
         <p>A list/table displaying your defined grading structure and assessments will go here.</p>
 
         <pre>{{ JSON.stringify(props.subjectData, null, 2) }}</pre>

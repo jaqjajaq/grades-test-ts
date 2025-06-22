@@ -1,5 +1,6 @@
-<script setup>
-import { ref, computed } from 'vue';
+<script setup lang="ts">
+import { ref, reactive, computed } from 'vue';
+import { Assessment, Subcategory, Category, SubjectData } from '../types';
 
 const props = defineProps({
     categories: {
@@ -8,21 +9,27 @@ const props = defineProps({
     }
 });
 
-const newAssessment = ref({ parentCategoryId: "", parentSubcategoryId: "", name: "", score: null, total: null })
+const state = reactive({
+    name: '',
+    score: 0,
+    total: 0,
+    categoryId: '',
+    subcategoryId: '',
+});
 
 // A variable that lists the available subcategories to choose from in the form depending on the chosen category
 const filteredSubcategories = computed(() => {
-    const selectedCategoryId = newAssessment.value.parentCategoryId;
+    const selectedCategoryId = state.categoryId;
 
-    if (!selectedCategoryId) {
-        return []; // Return empty array if no category is selected yet
-    }
+    if (!selectedCategoryId) return [];
 
     // Find the selected category
-    const targetCategory = props.categories.find(category => category.id === selectedCategoryId);
+    const targetCategory = <Category>props.categories.find(category => category.id === selectedCategoryId);
 
-    // Return its subcategories, or empty array if category not found (shouldn't happen with proper dropdown)
-    return targetCategory ? targetCategory.subcategories : [];
+    // Map it into the desired data structure for the InputMenu
+    const subcategories = targetCategory.subcategories.map((subcategory) => ({ label: subcategory.name, id: subcategory.id }));
+
+    return subcategories;
 })
 
 const emit = defineEmits(["add-assessment"]);
@@ -30,54 +37,51 @@ const emit = defineEmits(["add-assessment"]);
 function handleAddAssessment() {
     emit('add-assessment', {
         id: window.crypto.randomUUID(),
-        name: newAssessment.value.name,
-        score: newAssessment.value.score,
-        total: newAssessment.value.total,
-    }, newAssessment.value.parentCategoryId, newAssessment.value.parentSubcategoryId);
+        name: state.name,
+        score: state.score,
+        total: state.total,
+    }, state.categoryId, state.subcategoryId);
+}
 
-    // Reset form fields
-    newAssessment.value = { parentCategoryId: "", parentSubcategoryId: "", name: "", score: null, total: null };
+function clearSubcategory() {
+    state.subcategoryId = '';
 }
 </script>
 
 <template>
     <section class="create-assessment-form">
-        <h3>Create New Assessment</h3>
-        <form @submit.prevent="handleAddAssessment">
-            <label for="assessment-category-select">Select Parent Category:</label>
-            <select id="assessment-category-select" v-model="newAssessment.parentCategoryId" required>
-                <option value="" disabled selected>-- Choose Category --</option>
-                <option v-for="category in props.categories" :key="category.id" :value="category.id">
-                    {{ category.name }}
-                </option>
-            </select>
+        <h3 class="text-xl text-highlighted font-semibold mb-4">Assessment</h3>
 
-            <label for="assessment-subcategory-select">Select Parent Subcategory:</label>
-            <select id="assessment-subcategory-select" v-model="newAssessment.parentSubcategoryId" required>
-                <option value="" disabled selected>-- Choose Subcategory --</option>
-                <option v-for="subcategory in filteredSubcategories" :key="subcategory.id" :value="subcategory.id">
-                    {{ subcategory.name }}
-                </option>
-            </select>
+        <UForm :state="state" class="gap-4 flex flex-col w-full" @submit="handleAddAssessment">
+            <UFormField label="Parent Category" required>
+                <UInputMenu v-model="state.categoryId" placeholder="Written Works..." :items="props.categories.map((category) => ({ label: category.name, id: category.id }))" value-key="id" @update:modelValue="clearSubcategory"/>
+            </UFormField>
+            <UFormField label="Parent Subcategory" required>
+                <UInputMenu v-model="state.subcategoryId" placeholder="Quizzes..."
+                    :items="filteredSubcategories" value-key="id" />
+            </UFormField>
+            <UFormField label="Name" required>
+                <UInput v-model="state.name" placeholder="Quiz #1: Ionic Bonds..." class="block" />
+            </UFormField>
 
-            <label for="assessment-name">Name:</label>
-            <input type="text" id="assessment-name" v-model="newAssessment.name" required>
+            <div class="flex flex-row gap-4 justify-between">
+                <UFormField label="Score" required>
+                    <UInput v-model="state.score" placeholder="14" type="number" />
+                </UFormField>
+                <UFormField label="Total" required>
+                    <UInput v-model="state.total" placeholder="15" type="number" />
+                </UFormField>
+            </div>
 
-            <label for="assessment-score">Score:</label>
-            <input type="number" id="assessment-score" v-model.number="newAssessment.score" required>
 
-            <label for="assessment-total">Total Points:</label>
-            <input type="number" id="assessment-total" v-model.number="newAssessment.total" required>
-
-            <button type="submit">Add Assessment</button>
-        </form>
+            <div>
+                <UButton type="submit">
+                    Create
+                </UButton>
+            </div>
+        </UForm>
     </section>
 </template>
 
 <style scoped>
-form {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-}
 </style>

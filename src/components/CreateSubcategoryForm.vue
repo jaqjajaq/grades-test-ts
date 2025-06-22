@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, reactive } from 'vue';
 
 const props = defineProps({
     categories: {
@@ -8,50 +8,48 @@ const props = defineProps({
     }
 });
 
-const newSubcategory = ref({ parentCategoryId: "", name: "", weight: null });
-
 const emit = defineEmits(["add-subcategory"]);
 
 function handleAddSubcategory() {
     emit('add-subcategory', {
         id: window.crypto.randomUUID(),
-        name: newSubcategory.value.name,
-        weight: newSubcategory.value.weight,
+        name: state.name,
+        weight: state.weight,
         assessments: []
-    }, newSubcategory.value.parentCategoryId);
-
-    // Reset form fields
-    newSubcategory.value = { parentCategoryId: "", name: "", weight: null };
+    }, state.categoryId);
 }
+
+const state = reactive({
+    name: '',
+    weight: 0,
+    categoryId: '',
+});
 </script>
 
 <template>
     <section class="create-subcategory-form">
-        <h3>Create New Subcategory</h3>
-        <form @submit.prevent="handleAddSubcategory">
-            <label for="parent-category-select">Select Parent Category:</label>
-            <select id="parent-category-select" v-model="newSubcategory.parentCategoryId" required>
-                <option value="" disabled selected>-- Choose Category --</option>
-                <option v-for="category in props.categories" :key="category.id" :value="category.id">
-                    {{ category.name }}
-                </option>
-            </select>
+        <h3 class="text-xl text-highlighted font-semibold mb-4">Subcategory</h3>
+        
+        <UForm :state="state" class="gap-4 flex flex-col w-full" @submit="handleAddSubcategory">
+            <UFormField label="Parent Category" required>
+                <UInputMenu v-model="state.categoryId" placeholder="Written Works..." :items="props.categories.map((category) => ({ label: category.name, id: category.id }))" value-key="id" />
+            </UFormField>
+            <UFormField label="Name" required>
+                <UInput v-model="state.name" placeholder="Quizzes..." class="block" />
+            </UFormField>
+            
+            <UFormField label="Weight" name="weight" required>
+                <UInput v-model="state.weight" placeholder="50%" type="number" class="block" />
+            </UFormField>
 
-            <label for="subcategory-name">Name:</label>
-            <input type="text" id="subcategory-name" v-model="newSubcategory.name" required>
-
-            <label for="subcategory-weight">Weight (% within Category):</label>
-            <input type="number" id="subcategory-weight" v-model.number="newSubcategory.weight" required>
-
-            <button type="submit">Add Subcategory</button>
-        </form>
+            <div>
+                <UButton type="submit">
+                    Create
+                </UButton>
+            </div>
+        </UForm>
     </section>
 </template>
 
 <style scoped>
-form {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-}
 </style>

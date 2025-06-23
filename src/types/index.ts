@@ -22,5 +22,5 @@ export interface Category {
 export interface SubjectData {
   name: string,
   teacher: string,
-  category: Category[],
+  categories: Category[],
 }

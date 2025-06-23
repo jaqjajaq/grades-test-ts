@@ -1,7 +1,10 @@
-<script setup>
+<script setup lang="ts">
+import { PropType } from 'vue';
+import { SubjectData } from '../types';
+
 const props = defineProps({
     subjectData: {
-        type: Object,
+        type: Object as PropType<SubjectData>,
         required: true
     }
 });

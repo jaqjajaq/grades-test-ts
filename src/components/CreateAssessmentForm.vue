@@ -1,15 +1,15 @@
 <script setup lang="ts">
-import { ref, reactive, computed } from 'vue';
-import { Assessment, Subcategory, Category, SubjectData } from '../types';
+import { reactive, computed, PropType } from 'vue';
+import { Subcategory, Category } from '../types';
 
 const props = defineProps({
     categories: {
-        type: Array,
+        type: Array as PropType<Category[]>,
         required: true
     }
 });
 
-const state = reactive({
+const formData = reactive({
     name: '',
     score: 0,
     total: 0,
@@ -19,15 +19,15 @@ const state = reactive({
 
 // A variable that lists the available subcategories to choose from in the form depending on the chosen category
 const filteredSubcategories = computed(() => {
-    const selectedCategoryId = state.categoryId;
+    const selectedCategoryId = formData.categoryId;
 
     if (!selectedCategoryId) return [];
 
     // Find the selected category
-    const targetCategory = <Category>props.categories.find(category => category.id === selectedCategoryId);
+    const targetCategory = <Category>props.categories.find((category: Category) => category.id === selectedCategoryId);
 
     // Map it into the desired data structure for the InputMenu
-    const subcategories = targetCategory.subcategories.map((subcategory) => ({ label: subcategory.name, id: subcategory.id }));
+    const subcategories = targetCategory.subcategories.map((subcategory: Subcategory) => ({ label: subcategory.name, id: subcategory.id }));
 
     return subcategories;
 })
@@ -37,14 +37,14 @@ const emit = defineEmits(["add-assessment"]);
 function handleAddAssessment() {
     emit('add-assessment', {
         id: window.crypto.randomUUID(),
-        name: state.name,
-        score: state.score,
-        total: state.total,
-    }, state.categoryId, state.subcategoryId);
+        name: formData.name,
+        score: formData.score,
+        total: formData.total,
+    }, formData.categoryId, formData.subcategoryId);
 }
 
 function clearSubcategory() {
-    state.subcategoryId = '';
+    formData.subcategoryId = '';
 }
 </script>
 
@@ -52,24 +52,24 @@ function clearSubcategory() {
     <section class="create-assessment-form">
         <h3 class="text-xl text-highlighted font-semibold mb-4">Assessment</h3>
 
-        <UForm :state="state" class="gap-4 flex flex-col w-full" @submit="handleAddAssessment">
+        <UForm :state="formData" class="gap-4 flex flex-col w-full" @submit="handleAddAssessment">
             <UFormField label="Parent Category" required>
-                <UInputMenu v-model="state.categoryId" placeholder="Written Works..." :items="props.categories.map((category) => ({ label: category.name, id: category.id }))" value-key="id" @update:modelValue="clearSubcategory"/>
+                <UInputMenu v-model="formData.categoryId" placeholder="Written Works..." :items="props.categories.map((category: Category) => ({ label: category.name, id: category.id }))" value-key="id" @update:modelValue="clearSubcategory"/>
             </UFormField>
             <UFormField label="Parent Subcategory" required>
-                <UInputMenu v-model="state.subcategoryId" placeholder="Quizzes..."
+                <UInputMenu v-model="formData.subcategoryId" placeholder="Quizzes..."
                     :items="filteredSubcategories" value-key="id" />
             </UFormField>
             <UFormField label="Name" required>
-                <UInput v-model="state.name" placeholder="Quiz #1: Ionic Bonds..." class="block" />
+                <UInput v-model="formData.name" placeholder="Quiz #1: Ionic Bonds..." class="block" />
             </UFormField>
 
             <div class="flex flex-row gap-4 justify-between">
                 <UFormField label="Score" required>
-                    <UInput v-model="state.score" placeholder="14" type="number" />
+                    <UInput v-model="formData.score" placeholder="14" type="number" />
                 </UFormField>
                 <UFormField label="Total" required>
-                    <UInput v-model="state.total" placeholder="15" type="number" />
+                    <UInput v-model="formData.total" placeholder="15" type="number" />
                 </UFormField>
             </div>
 

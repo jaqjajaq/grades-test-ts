@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 const emit = defineEmits(["save-data", "load-data", "reset-data"]);
 </script>
 

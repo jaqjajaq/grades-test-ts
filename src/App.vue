@@ -11,16 +11,14 @@ import StorageOptions from "./components/StorageOptions.vue";
 
 import { calculateSubjectGrade } from "./utils/gradesCalculator";
 
-const calculatedSubjectGrade = computed(() => {
-  return calculateSubjectGrade(subjectData.value.categories);
-});
-
-// the root structure of the data of a single subject
-
 const subjectData = ref<SubjectData>({
   name: 'General Chemistry II',
   teacher: 'Ms. Nova',
   categories: []
+});
+
+const calculatedSubjectGrade = computed(() => {
+  return calculateSubjectGrade(subjectData.value.categories);
 });
 
 function handleAddCategory(newCategory: Category) {

@@ -1,6 +1,7 @@
-import js from '@eslint/js'
-import eslintPluginVue from 'eslint-plugin-vue'
-import ts from 'typescript-eslint'
+import js from '@eslint/js';
+import eslintPluginVue from 'eslint-plugin-vue';
+import ts from 'typescript-eslint';
+import globals from 'globals';
 
 export default ts.config(
   js.configs.recommended,
@@ -11,6 +12,9 @@ export default ts.config(
     languageOptions: {
       parserOptions: {
         parser: '@typescript-eslint/parser'
+      },
+      globals: {
+        ...globals.browser,
       }
     },
     rules: {
